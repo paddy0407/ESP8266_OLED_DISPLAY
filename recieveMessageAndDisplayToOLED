@@ -1,0 +1,170 @@
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+#include <ESP8266WebServer.h>
+
+  // SKETCH DERIVED FROM:
+  //https://techtutorialsx.com/2016/10/22/esp8266-webserver-getting-query-parameters/
+  //modified by PaddyMcC
+  //www.paddymcc.com
+  //Website coming soon - in progress
+
+  //****************************
+  //START IDE SETUP
+  //****************************
+
+  //BOARD: NODEMCU 1.0 (ESP-12E MODULE)
+  //FLASH SIZE: 4M (1M SPIFFS)
+  //DEBUG PORT: DISABLED
+  //DEBUG LEVEL: NONE
+  //IwIP VARIANT: V2 LOWER MEMORY
+  //CPU FREQUENCY: 80MHZ
+  //UPLOAD SPEED: 115200
+  //ERASE FALSH: ONLY SKETCH
+  //PROGRAMMER: AVR ISP
+  
+  //****************************
+  //END IDE SETUP
+  //****************************
+
+  //****************************
+  //HARDWARE SETUP START
+  //****************************
+
+//ESP8266
+//12C OLED 0.91" DISPLAY
+
+//ESP8266 PIN VIN > DISPLAY PIN CC
+//ESP8266 PIN GND > DISPLAY PIN GND
+//ESP8266 PIN D1 > DISPLAY PIN SCL
+//ESP8266 PIN D2 > DISPLAY PIN SDA
+
+  //****************************
+  //HARDWARE SETUP END
+  //****************************
+
+  //TO TEST SKETCH:
+  //http://192.168.1.141/message?msg=TEST_SUCCESSFUL
+  //REPLACE 192.168.1.141 WITH IP SHOWN ON DISPLAY
+  //WILL DISPLAY "MESSAGE" OR WHATEVER YOU WRITE HERE
+  //MAX OF 84 CHARACTERS
+
+
+//TO EDIT : WIFI NETWROK NAME (SSID) AND PASSWORD
+//KEEP QUOTATION MARKS
+const char* ssid     = "SSID";
+const char* password = "PASSWORD";
+
+//SETUP FOR DISPLAY
+#define OLED_RESET LED_BUILTIN  //4
+Adafruit_SSD1306 display(OLED_RESET);
+
+//SERVER PORT SETUP
+ESP8266WebServer server(80);
+
+
+void setup() {
+
+  //****************************
+  //STARTING THE WIFI CONNECTION
+  //****************************
+
+  //SETS SERIAL OUTPUT FOR DIAGNOSTICS
+  //STARTS WIFI WITH THE ABOVE CREDENTIALS
+
+  
+  Serial.begin(115200);                         //DIAGNOSTICS PURPOSES
+  delay(10);                                    //DIAGNOSTICS PURPOSES
+  Serial.println('\n');                         //DIAGNOSTICS PURPOSES
+  
+  WiFi.begin(ssid, password);                   //CONNECTING TO WIFI
+  
+  Serial.print("Connecting to ");               //DIAGNOSTICS PURPOSES
+  Serial.print(ssid); Serial.println(" ...");   //DIAGNOSTICS PURPOSES
+
+  int i = 0;                                    //DIAGNOSTICS PURPOSES
+  while (WiFi.status() != WL_CONNECTED) {       //DIAGNOSTICS PURPOSES
+    delay(1000);                               //DIAGNOSTICS PURPOSES
+    Serial.print(++i); Serial.print(' ');      //DIAGNOSTICS PURPOSES
+  }
+
+  Serial.println('\n');                        //DIAGNOSTICS PURPOSES
+  Serial.println("Connection established!");   //DIAGNOSTICS PURPOSES
+  Serial.print("IP address:\t");               //DIAGNOSTICS PURPOSES
+  Serial.println(WiFi.localIP());              //DIAGNOSTICS PURPOSES
+  
+  //****************************
+  //END OF THE WIFI CONNECTION
+  //****************************
+
+  //****************************
+  //START SEND TO DISPLAY
+  //****************************
+  
+  //DISPLAYS THE IP ADDRESS OF THE ESP SO THAT AN ARGUMENT CAN BE SET UP FOR IT
+  //THE IP WILL REMAIN UNTIL IT RECEIVES AN ARGUMENT TO DISPLAY
+  
+  display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
+  display.clearDisplay();
+  display.display();
+
+  display.setTextSize(1);
+  display.setTextColor(WHITE);
+  display.setCursor(0,0);
+  display.println(WiFi.localIP());
+  display.display();
+
+  //****************************
+  //END SEND TO DISPLAY
+  //****************************
+
+  //****************************
+  //START SERVER SETUP
+  //****************************
+
+  server.on("/message", handlemessage); //Associate the handler function to the path
+
+  server.begin();
+  Serial.println("Server listening");                 //DIAGNOSTICS PURPOSES
+
+  //****************************
+  //END SERVER SETUP
+  //****************************
+}
+
+void loop() {
+  
+//MAIN LOOP TO  HANDLE CLIENT
+//WILL RUN CODE WHEN ARGUMENT IS MET VIA HTTP
+
+server.handleClient();
+
+}
+
+
+void handlemessage() {
+
+  //GRABS THE MESSAGE FROM THE ARGUMENT
+  String message = "";
+  for (int i = 0; i < server.args(); i++) {
+  message += server.arg(i) + "";
+   }
+
+server.send(200, "text/plain", message);                      //DISPLAYS MESSAGE ON WEBPAGE
+
+  //****************************
+  //START DISPLAY
+  //****************************
+  //DISPLAYS ARGUMENT SENT TO ESP8266
+      display.clearDisplay();
+      display.display();
+      display.setTextSize(1);
+      display.setTextColor(WHITE);
+      display.setCursor(0,0);
+      display.println(message);
+      display.display();
+
+      Serial.println(message);                    //DIAGNOSTICS PURPOSES
+  //****************************
+  //END DISPLAY
+  //****************************
+}
