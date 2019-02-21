@@ -20,3 +20,4 @@ Scripts can then be automated to send messages to this address with the address 
 
 This has been done for the pssiblity to be used along with Home Assistant and the RESTful component
 
+![oled test](https://user-images.githubusercontent.com/39813369/53135284-8ecf3980-3572-11e9-888d-8e864ecb1b9b.JPG)
